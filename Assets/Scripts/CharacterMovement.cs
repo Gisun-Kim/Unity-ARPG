@@ -94,25 +94,6 @@ namespace Gisun
 
         void UpdateMovement()
         {
-            // Input
-            // TO DO : 나중에 입력은 따로 빼자
-            float h = UnityStandardAssets.CrossPlatformInput.CrossPlatformInputManager.GetAxis("Horizontal");
-            float v = UnityStandardAssets.CrossPlatformInput.CrossPlatformInputManager.GetAxis("Vertical");
-
-            Vector3 movement = Vector3.zero;
-            // calculate move direction to pass to character
-            if (_camera != null)
-            {
-                // calculate camera relative direction to move:
-                var camForward = Vector3.Scale(_camera.forward, new Vector3(1, 0, 1)).normalized;
-                movement = v * camForward + h * _camera.right;
-            }
-            else
-            {
-                // we use world-relative directions in the case of no main camera
-                movement = v * Vector3.forward + h * Vector3.right;
-            }
-
 
             if (_movement.magnitude < _moveThreshold)
                 _movement = Vector3.zero;
