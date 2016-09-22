@@ -30,6 +30,7 @@ namespace Gisun
             }
 
             _animator = GetComponentInChildren<Animator>();
+            _animator.applyRootMotion = false;
         }
 
         void Start()
@@ -77,17 +78,16 @@ namespace Gisun
                     if (_characterMovement.GroundStatus)
                     {
                         _attacking = true;
-                        _characterMovement.ControlAllowed = false;
-                        _animator.applyRootMotion = true;
-                        _animator.SetTrigger("Attack");
+                        //_characterMovement.MoveAllowed = false;
+                        _animator.SetTrigger("SkillActive");
+                        _animator.SetInteger("SkillID", 0);
                         Invoke("OnEndAttack", 3f);
                     }
                     else
                     {
                         // 점프 공격
                         _attacking = true;
-                        _characterMovement.ControlAllowed = false;
-                        _animator.applyRootMotion = true;
+                        _characterMovement.MoveAllowed = false;
                         _animator.SetTrigger("Attack");
                         Invoke("OnEndAttack", 1.2f);
                     }
@@ -97,12 +97,11 @@ namespace Gisun
             // Input Diving
             if (CrossPlatformInputManager.GetButtonDown("Fire3"))
             {
-                if (_diving || !_characterMovement.GroundStatus || !_characterMovement.ControlAllowed)
+                if (_diving || !_characterMovement.GroundStatus || !_characterMovement.MoveAllowed)
                     return;
 
                 _diving = true;
-                _characterMovement.ControlAllowed = false;
-                _animator.applyRootMotion = true;
+                _characterMovement.MoveAllowed = false;
                 _animator.SetTrigger("Dive");
                 Invoke("OnEndDiving", 1.2f);
             }
@@ -117,15 +116,13 @@ namespace Gisun
         private void OnEndAttack()
         {
             _attacking = false;
-            _characterMovement.ControlAllowed = true;
-            _animator.applyRootMotion = false;
+            _characterMovement.MoveAllowed = true;
         }
 
         private void OnEndDiving()
         {
             _diving = false;
-            _characterMovement.ControlAllowed = true;
-            _animator.applyRootMotion = false;
+            _characterMovement.MoveAllowed = true;
         }
 
         // Animator
@@ -134,14 +131,14 @@ namespace Gisun
             if (_animator == null)
                 return;
 
-            if (_characterMovement.ControlAllowed)
+            if (_characterMovement.MoveAllowed)
             {
-                _animator.SetFloat("Speed", new Vector3(_characterMovement.velocity.x, 0f, _characterMovement.velocity.z).magnitude);
+                _animator.SetFloat("Speed", new Vector3(_characterMovement.Velocity.x, 0f, _characterMovement.Velocity.z).magnitude);
             }
             _animator.SetBool("Grounded", _characterMovement.GroundStatus);
             if (!_characterMovement.GroundStatus)
             {
-                _animator.SetFloat("Jump", _characterMovement.velocity.y);
+                _animator.SetFloat("Jump", _characterMovement.Velocity.y);
             }
         }
     }

@@ -6,7 +6,7 @@ using UnityStandardAssets.Cameras;
 namespace Gisun
 {
 
-    public class TopDownCamera : AbstractTargetFollower
+    public class TopDownCamera : TargetFollower
     {
         public float startRotation = 45f;
         public float minRotation = 0f;
@@ -56,5 +56,3 @@ namespace Gisun
         }
     }
 }
-
-
