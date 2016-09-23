@@ -6,6 +6,7 @@ Properties {
 
     SubShader { 
 		ZTest Always Cull Off ZWrite Off
+		Fog { Mode off }
 		Pass {
 			Blend SrcAlpha OneMinusSrcAlpha
 			ColorMask RGB
@@ -17,6 +18,7 @@ Properties {
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
+			#pragma fragmentoption ARB_precision_hint_fastest
 	
 			#include "UnityCG.cginc"
 	
@@ -62,6 +64,7 @@ Properties {
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
+			#pragma fragmentoption ARB_precision_hint_fastest
 	
 			#include "UnityCG.cginc"
 	
@@ -98,6 +101,7 @@ Properties {
 
 SubShader {
 	ZTest Always Cull Off ZWrite Off
+	Fog { Mode off }
 	Pass {
 		Blend SrcAlpha OneMinusSrcAlpha
 		ColorMask RGB

@@ -18,7 +18,7 @@ namespace Gisun
         protected bool _isDead = false;
 
         // events
-        public event Action<CharacterEntity> OnDeath;
+        public event Action OnDeath;
 
         public int HP { get { return _curruntHP; } }
         public bool IsDead { get { return _isDead; } }
@@ -48,7 +48,7 @@ namespace Gisun
             _isDead = true;
             if (this.OnDeath != null)
             {
-                this.OnDeath(this);
+                this.OnDeath();
             }
         }
     }

@@ -28,9 +28,9 @@ namespace Gisun
         }
 
         // 입력에 의한 컨트롤 허용
-        public bool MoveAllowed { get; set; }
-        // 이동시 회전
-        public bool TurnAllowed { get; set; }
+        public bool ControlAllowed { get; set; }
+        // 이동시 회전을 하지 않게 잠근다
+        public bool LockRotate { get; set; }
         private Transform _transform;
         private CharacterController _controller;
         private Collider _collider;
@@ -62,8 +62,8 @@ namespace Gisun
                 _camera = Camera.main.transform;
             }
 
-            this.MoveAllowed = true;
-            this.TurnAllowed = true;
+            this.ControlAllowed = true;
+            this.LockRotate = false;
         }
 
         private void FixedUpdate()
@@ -79,13 +79,14 @@ namespace Gisun
             }
         }
 
-        public void Stop()
-        {
-            Move(Vector3.zero);
-        }
-
         void UpdateMovement()
         {
+            if (!this.ControlAllowed)
+            {
+                this.StopTurn();
+                this.StopMove();
+            }
+
             // 정규화
             if (_targetMovement.magnitude > 1f)
             {
@@ -98,9 +99,9 @@ namespace Gisun
             }
 
             // 회전
-            if (this.TurnAllowed)
+            if (!this.LockRotate)
             {
-                // 강제 회전이 아니면 회전 설정(강제 회전을 우선시 하기 위해)
+                // 강제 회전이 아니면 이동 방향으로 targetRotation 설정(강제 회전을 우선시 하기 위해)
                 if (!_forceTurn)
                 {
                     if (_targetMovement.sqrMagnitude > 0f)
@@ -109,10 +110,11 @@ namespace Gisun
                     }
                 }
 
-                // 회전이 있으면 회전 시킨다
+                // targetRotation 이 있으면 회전 시킨다
                 if (_targetRotation.x != float.MaxValue)
                 {
                     _transform.rotation = Quaternion.RotateTowards(_transform.rotation, _targetRotation, _turnSpeed * Time.fixedDeltaTime);
+                    // 보간
                     //_transform.rotation = Quaternion.Slerp(_transform.rotation, targetRotation, Time.fixedDeltaTime * _turnSpeed);
 
                     // 목표까지 회전을 다 했으면 초기화
@@ -125,21 +127,11 @@ namespace Gisun
                 }
             }
 
-
-            // 이동
-            if (this.MoveAllowed)
-            {
-
-            }
-
             // 지면을 체크
             CheckGroundStatus();
             // 표면 경사를 이동에 적용
             _moveDirection = Vector3.ProjectOnPlane(_targetMovement, _groundNormal) * _moveSpeed * _moveMultiplier;
             _moveDirection.y = 0f;
-
-            // 중력 가속도를 더해준다
-            _gravity += Physics.gravity * _gravityMultiplier * Time.fixedDeltaTime;
 
             // 지면을 꽉 눌러 주기위한 값
             Vector3 snapGround = Vector3.zero;
@@ -150,7 +142,7 @@ namespace Gisun
                 _gravity = Vector3.zero;
 
                 // 점프
-                if (this.MoveAllowed && _jump)
+                if (this.ControlAllowed && _jump)
                 {
                     _gravity = Vector3.up * _jumpSpeed;
                     _jump = false;
@@ -160,6 +152,11 @@ namespace Gisun
                     // 지면을 꽉 눌러줌(안그러면 경사 면에서 통통 튐)
                     snapGround = (Vector3.down * _snapGround);
                 }
+            }
+            else
+            {
+                // 중력 가속도를 더해준다
+                _gravity += Physics.gravity * _gravityMultiplier * Time.fixedDeltaTime;
             }
 
             // 이동
@@ -237,17 +234,47 @@ namespace Gisun
             */
         }
 
-        // 강제로 회전
-        public void Turn(Quaternion rotation)
+        // 즉시 회전
+        public void SetRotate(Vector3 direction)
         {
-            _forceTurn = true;
-            _targetRotation = rotation;
+            this.SetRotate(Quaternion.LookRotation(direction));
+        }
+        // 즉시 회전
+        public void SetRotate(Quaternion rotation)
+        {
+            StopTurn();
+            _transform.rotation = rotation;
         }
 
-        // 이동
+        // 목표 까지 강제로 프레임마다 회전
+        public void ForceTurn(Vector3 direction)
+        {
+            this.ForceTurn(Quaternion.LookRotation(direction));
+        }
+        // 목표 까지 강제로 프레임마다 회전
+        public void ForceTurn(Quaternion targetRotation)
+        {
+            _forceTurn = true;
+            _targetRotation = targetRotation;
+        }
+
+        // 다음 프레임 회전을 멈춤
+        public void StopTurn()
+        {
+            _forceTurn = false;
+            _targetRotation = new Quaternion(float.MaxValue, 0f, 0f, 0f);
+        }
+
+        // 다음 프레임에 방향으로 이동
         public void Move(Vector3 movement)
         {
             _targetMovement = movement;
+        }
+
+        // 다음 프레임 이동을 멈춤
+        public void StopMove()
+        {
+            Move(Vector3.zero);
         }
     }
 }

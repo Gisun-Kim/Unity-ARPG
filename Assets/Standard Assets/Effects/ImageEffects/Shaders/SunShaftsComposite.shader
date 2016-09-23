@@ -27,8 +27,8 @@ Shader "Hidden/SunShaftsComposite" {
 	sampler2D _ColorBuffer;
 	sampler2D _Skybox;
 	sampler2D_float _CameraDepthTexture;
-
-	uniform half4 _SunThreshold;
+	
+	uniform half _NoSkyBoxMask;
 		
 	uniform half4 _SunColor;
 	uniform half4 _BlurRadius4;
@@ -97,7 +97,7 @@ Shader "Hidden/SunShaftsComposite" {
 	}	
 	
 	half TransformColor (half4 skyboxValue) {
-		return dot(max(skyboxValue.rgb - _SunThreshold.rgb, half3(0,0,0)), half3(1,1,1)); // threshold and convert to greyscale
+		return max (skyboxValue.a, _NoSkyBoxMask * dot (skyboxValue.rgb, float3 (0.59,0.3,0.11))); 		
 	}
 	
 	half4 frag_depth (v2f i) : SV_Target {
@@ -147,8 +147,6 @@ Shader "Hidden/SunShaftsComposite" {
 		
 		half4 outColor = 0;		
 		
-		// find unoccluded sky pixels
-		// consider pixel values that differ significantly between framebuffer and sky-only buffer as occluded
 		if (Luminance ( abs(sky.rgb - tex.rgb)) < 0.2)
 			outColor = TransformColor (sky) * dist;
 		
@@ -163,9 +161,11 @@ Subshader {
   
  Pass {
 	  ZTest Always Cull Off ZWrite Off
+	  Fog { Mode off }      
 
       CGPROGRAM
       
+      #pragma fragmentoption ARB_precision_hint_fastest 
       #pragma vertex vert
       #pragma fragment fragScreen
       
@@ -174,9 +174,11 @@ Subshader {
   
  Pass {
 	  ZTest Always Cull Off ZWrite Off
+	  Fog { Mode off }      
 
       CGPROGRAM
       
+      #pragma fragmentoption ARB_precision_hint_fastest
       #pragma vertex vert_radial
       #pragma fragment frag_radial
       
@@ -185,9 +187,11 @@ Subshader {
   
   Pass {
 	  ZTest Always Cull Off ZWrite Off
+	  Fog { Mode off }      
 
       CGPROGRAM
       
+      #pragma fragmentoption ARB_precision_hint_fastest      
       #pragma vertex vert
       #pragma fragment frag_depth
       
@@ -196,9 +200,11 @@ Subshader {
   
   Pass {
 	  ZTest Always Cull Off ZWrite Off
+	  Fog { Mode off }      
 
       CGPROGRAM
       
+      #pragma fragmentoption ARB_precision_hint_fastest      
       #pragma vertex vert
       #pragma fragment frag_nodepth
       
@@ -207,9 +213,11 @@ Subshader {
   
   Pass {
 	  ZTest Always Cull Off ZWrite Off
+	  Fog { Mode off }      
 
       CGPROGRAM
       
+      #pragma fragmentoption ARB_precision_hint_fastest 
       #pragma vertex vert
       #pragma fragment fragAdd
       

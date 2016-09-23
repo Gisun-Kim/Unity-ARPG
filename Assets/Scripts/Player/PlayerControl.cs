@@ -1,19 +1,32 @@
 ﻿using UnityEngine;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityStandardAssets.CrossPlatformInput;
 
 namespace Gisun
 {
+    enum SkillNum : int
+    {
+        None = 0,
+        Skill_1 = 1,
+        Skill_2 = 2,
+        Skill_3 = 3,
+        Skill_4 = 4,
+        Skill_5 = 5,
+        Skill_6 = 6,
+    }
+
     [RequireComponent(typeof(CharacterMovement))]
-    public class PlayerControl : MonoBehaviour
+    public class PlayerControl : CharacterEntity
     {
         private Transform _transform;
-        private CharacterMovement _characterMovement;
+        private CharacterMovement _movement;
         private Transform _camera;
 
-        private bool _attacking;
-        private bool _diving;
+        private bool _skillActivating;  // 스킬 시전중
+
+        private bool _Rolling;          // 구르는중
 
         // Animation control
         private Animator _animator;
@@ -21,8 +34,8 @@ namespace Gisun
         void Awake()
         {
             _transform = GetComponent<Transform>();
-            _characterMovement = GetComponent<CharacterMovement>();
-            if (_characterMovement == null)
+            _movement = GetComponent<CharacterMovement>();
+            if (_movement == null)
             {
                 Debug.LogError("No CharacterMovement assigned. Character will now be disabled.");
                 this.enabled = false;
@@ -33,7 +46,7 @@ namespace Gisun
             _animator.applyRootMotion = false;
         }
 
-        void Start()
+        protected override void Start()
         {
             if (_camera == null)
             {
@@ -43,86 +56,156 @@ namespace Gisun
 
         void Update()
         {
-            Vector3 movement = Vector3.zero;
-
-            // input jump
-            if (CrossPlatformInputManager.GetButtonDown("Jump"))
-            {
-                _characterMovement.Jump();
-            }
-
-            // Input move
-            float h = CrossPlatformInputManager.GetAxis("Horizontal");
-            float v = CrossPlatformInputManager.GetAxis("Vertical");
-
-            // calculate move direction to pass to character
-            if (_camera != null)
-            {
-                // calculate camera relative direction to move:
-                var camForward = Vector3.Scale(_camera.forward, new Vector3(1, 0, 1)).normalized;
-                movement = v * camForward + h * _camera.right;
-            }
-            else
-            {
-                // we use world-relative directions in the case of no main camera
-                movement = v * Vector3.forward + h * Vector3.right;
-            }
-
-            _characterMovement.Move(movement);
-
-            // Input Attack
-            if (CrossPlatformInputManager.GetButtonDown("Fire1"))
-            {
-                if (!_attacking)
-                {
-                    if (_characterMovement.GroundStatus)
-                    {
-                        _attacking = true;
-                        //_characterMovement.MoveAllowed = false;
-                        _animator.SetTrigger("SkillActive");
-                        _animator.SetInteger("SkillID", 0);
-                        Invoke("OnEndAttack", 3f);
-                    }
-                    else
-                    {
-                        // 점프 공격
-                        _attacking = true;
-                        _characterMovement.MoveAllowed = false;
-                        _animator.SetTrigger("Attack");
-                        Invoke("OnEndAttack", 1.2f);
-                    }
-                }
-            }
-
-            // Input Diving
-            if (CrossPlatformInputManager.GetButtonDown("Fire3"))
-            {
-                if (_diving || !_characterMovement.GroundStatus || !_characterMovement.MoveAllowed)
-                    return;
-
-                _diving = true;
-                _characterMovement.MoveAllowed = false;
-                _animator.SetTrigger("Dive");
-                Invoke("OnEndDiving", 1.2f);
-            }
-
+            HandleMovementInput();
+            HandleSkillInput();
             UpdateAnimator();
         }
 
-        void FixedUpdate()
+        private void HandleMovementInput()
         {
+            if (!_Rolling && !_skillActivating && _movement.GroundStatus)
+            {
+                Vector3 movement = Vector3.zero;
+                // input jump
+                if (CrossPlatformInputManager.GetButtonDown("Jump"))
+                {
+                    _movement.Jump();
+                }
+
+                // Input movement
+                float h = CrossPlatformInputManager.GetAxis("Horizontal");
+                float v = CrossPlatformInputManager.GetAxis("Vertical");
+                // calculate move direction to pass to character
+                if (_camera != null)
+                {
+                    // calculate camera relative direction to move:
+                    var camForward = Vector3.Scale(_camera.forward, new Vector3(1, 0, 1)).normalized;
+                    movement = v * camForward + h * _camera.right;
+                }
+                else
+                {
+                    // we use world-relative directions in the case of no main camera
+                    movement = v * Vector3.forward + h * Vector3.right;
+                }
+                _movement.Move(movement);
+
+                // Input Roll
+                if (CrossPlatformInputManager.GetButtonDown("Roll"))
+                {
+                    Vector3 direction = (movement.sqrMagnitude > 0.01f) ? movement : _transform.forward;
+                    StartCoroutine(ProcessRoll(1.2f, direction));
+                }
+            }
+        }
+
+        void HandleSkillInput()
+        {
+            // Input Skill
+            if (!_Rolling)
+            {
+                // skill 1
+                if (CrossPlatformInputManager.GetButtonDown("Attack1"))
+                {
+                    if (_movement.GroundStatus)
+                    {
+                        StartCoroutine(ProcessSkillAction(1.2f, SkillNum.Skill_1, null));
+                    }
+                    else
+                    {
+
+                    }
+                }
+                // skill 2
+                if (CrossPlatformInputManager.GetButtonDown("Attack2"))
+                {
+                    if (!_skillActivating)
+                    {
+                        if (_movement.GroundStatus)
+                        {
+                            
+                        }
+                        else
+                        {
+                            
+                        }
+                    }
+                }
+                // skill 3
+                if (CrossPlatformInputManager.GetButtonDown("Skill1"))
+                {
+
+                }
+                // skill 4
+                if (CrossPlatformInputManager.GetButtonDown("Skill2"))
+                {
+
+                }
+                // skill 5
+                if (CrossPlatformInputManager.GetButtonDown("Skill3"))
+                {
+
+                }
+                // skill 6
+                if (CrossPlatformInputManager.GetButtonDown("Skill4"))
+                {
+
+                }
+            }
         }
 
         private void OnEndAttack()
         {
-            _attacking = false;
-            _characterMovement.MoveAllowed = true;
+            _skillActivating = false;
         }
 
-        private void OnEndDiving()
+        // 구르기 처리
+        IEnumerator ProcessRoll(float duration, Vector3 direction)
         {
-            _diving = false;
-            _characterMovement.MoveAllowed = true;
+            _animator.SetTrigger("Roll");
+
+            _movement.StopTurn();
+            _movement.StopMove();
+            _movement.SetRotate(direction);
+
+            _Rolling = true;
+            yield return new WaitForFixedUpdate();
+            
+            float timer = 0f;
+            while(timer < duration)
+            {
+                timer += Time.fixedDeltaTime;
+                _movement._moveMultiplier = Mathf.Sin(Mathf.Lerp(90f * Mathf.Deg2Rad, 0f, timer / duration)) * 1.3f;
+                _movement.Move(_transform.forward);
+                yield return new WaitForFixedUpdate();
+            }
+
+            _movement._moveMultiplier = 1f;
+            _Rolling = false;
+        }
+
+        IEnumerator ProcessSkillAction(float duration, SkillNum skill, Action<float> action)
+        {
+            _animator.SetTrigger("SkillActivate");
+            _animator.SetInteger("SkillNum", (int)skill);
+
+            _movement.StopTurn();
+            _movement.StopMove();
+
+            _skillActivating = true;
+            yield return new WaitForFixedUpdate();
+
+            float timer = 0f;
+            while (timer < duration)
+            {
+                timer += Time.fixedDeltaTime;
+                if (action != null)
+                {
+                    action(Time.deltaTime);
+                }
+                yield return new WaitForFixedUpdate();
+            }
+
+            _skillActivating = false;
         }
 
         // Animator
@@ -131,14 +214,14 @@ namespace Gisun
             if (_animator == null)
                 return;
 
-            if (_characterMovement.MoveAllowed)
+            if (_movement.ControlAllowed)
             {
-                _animator.SetFloat("Speed", new Vector3(_characterMovement.Velocity.x, 0f, _characterMovement.Velocity.z).magnitude);
+                _animator.SetFloat("Speed", new Vector3(_movement.Velocity.x, 0f, _movement.Velocity.z).magnitude);
             }
-            _animator.SetBool("Grounded", _characterMovement.GroundStatus);
-            if (!_characterMovement.GroundStatus)
+            _animator.SetBool("Grounded", _movement.GroundStatus);
+            if (!_movement.GroundStatus)
             {
-                _animator.SetFloat("Jump", _characterMovement.Velocity.y);
+                _animator.SetFloat("Jump", _movement.Velocity.y);
             }
         }
     }

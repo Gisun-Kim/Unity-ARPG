@@ -1,5 +1,14 @@
 Shader "Hidden/BlurEffectConeTap" {
 	Properties { _MainTex ("", any) = "" {} }
+	SubShader { 
+		Pass {
+			ZTest Always Cull Off ZWrite Off Fog { Mode Off }
+			SetTexture [_MainTex] {constantColor (0,0,0,0.25) combine texture * constant alpha}
+			SetTexture [_MainTex] {constantColor (0,0,0,0.25) combine texture * constant + previous}
+			SetTexture [_MainTex] {constantColor (0,0,0,0.25) combine texture * constant + previous}
+			SetTexture [_MainTex] {constantColor (0,0,0,0.25) combine texture * constant + previous}
+		}
+	}
 	CGINCLUDE
 	#include "UnityCG.cginc"
 	struct v2f {
@@ -31,8 +40,10 @@ Shader "Hidden/BlurEffectConeTap" {
 	SubShader {
 		 Pass {
 			  ZTest Always Cull Off ZWrite Off
+			  Fog { Mode off }      
 
 			  CGPROGRAM
+			  #pragma fragmentoption ARB_precision_hint_fastest
 			  #pragma vertex vert
 			  #pragma fragment frag
 			  ENDCG

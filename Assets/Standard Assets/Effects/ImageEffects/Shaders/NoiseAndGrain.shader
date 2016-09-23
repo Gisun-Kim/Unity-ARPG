@@ -118,6 +118,7 @@ Shader "Hidden/NoiseAndGrain" {
 	
 	SubShader {
 		ZTest Always Cull Off ZWrite Off Blend Off
+		Fog { Mode off }  
 	  
 		Pass {
 	
@@ -125,6 +126,7 @@ Shader "Hidden/NoiseAndGrain" {
 		
 		#pragma vertex vert
 		#pragma fragment frag
+		#pragma fragmentoption ARB_precision_hint_fastest 
 		
 		ENDCG
 		 
@@ -136,6 +138,7 @@ Shader "Hidden/NoiseAndGrain" {
 		
 		#pragma vertex vert
 		#pragma fragment fragOverlayBlend
+		#pragma fragmentoption ARB_precision_hint_fastest 
 		
 		ENDCG
 		 
@@ -147,6 +150,7 @@ Shader "Hidden/NoiseAndGrain" {
 		
 		#pragma vertex vert
 		#pragma fragment fragTmp
+		#pragma fragmentoption ARB_precision_hint_fastest 
 		
 		ENDCG
 		 
