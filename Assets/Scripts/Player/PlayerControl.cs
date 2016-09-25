@@ -90,7 +90,7 @@ namespace Gisun
                 _movement.Move(movement);
 
                 // Input Roll
-                if (CrossPlatformInputManager.GetButtonDown("Roll"))
+                if (CrossPlatformInputManager.GetButtonDown("Fire3"))
                 {
                     Vector3 direction = (movement.sqrMagnitude > 0.01f) ? movement : _transform.forward;
                     StartCoroutine(ProcessRoll(1.2f, direction));
@@ -104,7 +104,7 @@ namespace Gisun
             if (!_Rolling)
             {
                 // skill 1
-                if (CrossPlatformInputManager.GetButtonDown("Attack1"))
+                if (CrossPlatformInputManager.GetButtonDown("Fire1"))
                 {
                     if (_movement.GroundStatus)
                     {
@@ -116,7 +116,7 @@ namespace Gisun
                     }
                 }
                 // skill 2
-                if (CrossPlatformInputManager.GetButtonDown("Attack2"))
+                if (CrossPlatformInputManager.GetButtonDown("Fire2"))
                 {
                     if (!_skillActivating)
                     {
@@ -130,26 +130,26 @@ namespace Gisun
                         }
                     }
                 }
-                // skill 3
-                if (CrossPlatformInputManager.GetButtonDown("Skill1"))
-                {
+                //// skill 3
+                //if (CrossPlatformInputManager.GetButtonDown("Alpha1"))
+                //{
 
-                }
-                // skill 4
-                if (CrossPlatformInputManager.GetButtonDown("Skill2"))
-                {
+                //}
+                //// skill 4
+                //if (CrossPlatformInputManager.GetButtonDown("Alpha2"))
+                //{
 
-                }
-                // skill 5
-                if (CrossPlatformInputManager.GetButtonDown("Skill3"))
-                {
+                //}
+                //// skill 5
+                //if (CrossPlatformInputManager.GetButtonDown("Alpha3"))
+                //{
 
-                }
-                // skill 6
-                if (CrossPlatformInputManager.GetButtonDown("Skill4"))
-                {
+                //}
+                //// skill 6
+                //if (CrossPlatformInputManager.GetButtonDown("Alpha4"))
+                //{
 
-                }
+                //}
             }
         }
 

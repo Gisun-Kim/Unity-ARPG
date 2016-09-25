@@ -12,21 +12,20 @@ namespace Gisun
 
     public class CharacterEntity : MonoBehaviour, IDamageable
     {
-        [SerializeField]
-        private int _startHP = 100;
-        protected int _curruntHP;
-        protected bool _isDead = false;
+        public int maxHealth = 100;
+        public int curruntHealth;
+
+        protected bool isDead = false;
 
         // events
         public event Action OnDeath;
 
-        public int HP { get { return _curruntHP; } }
-        public bool IsDead { get { return _isDead; } }
+        public bool IsDead { get { return isDead; } }
 
         protected virtual void Start()
         {
-            _curruntHP = _startHP;
-            _isDead = false;
+            curruntHealth = maxHealth;
+            isDead = false;
         }
 
         public virtual void TakeHit(int damage, Vector3 hitPoint, Vector3 hitDirection)
@@ -36,8 +35,8 @@ namespace Gisun
 
         public virtual void TakeDamage(int damage)
         {
-            _curruntHP = Mathf.Clamp(_curruntHP - damage, 0, _startHP);
-            if (_curruntHP <= 0 && !_isDead)
+            curruntHealth = Mathf.Clamp(curruntHealth - damage, 0, maxHealth);
+            if (curruntHealth <= 0 && !isDead)
             {
                 this.Die();
             }
@@ -45,7 +44,7 @@ namespace Gisun
 
         protected virtual void Die()
         {
-            _isDead = true;
+            isDead = true;
             if (this.OnDeath != null)
             {
                 this.OnDeath();
