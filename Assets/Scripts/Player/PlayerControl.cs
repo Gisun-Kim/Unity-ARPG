@@ -6,15 +6,11 @@ using UnityStandardAssets.CrossPlatformInput;
 
 namespace Gisun
 {
-    enum SkillNum : int
+    class Skill
     {
-        None = 0,
-        Skill_1 = 1,
-        Skill_2 = 2,
-        Skill_3 = 3,
-        Skill_4 = 4,
-        Skill_5 = 5,
-        Skill_6 = 6,
+        public int skillID;
+        public string name;
+        public bool combo;
     }
 
     [RequireComponent(typeof(CharacterMovement))]
@@ -25,8 +21,11 @@ namespace Gisun
         private Transform _camera;
 
         private bool _skillActivating;  // 스킬 시전중
-
         private bool _rolling;          // 구르는중
+
+        private Dictionary<int, Skill> _skills = new Dictionary<int, Skill>();
+        private Skill _prevActivatingSkill;
+        private Skill _currentActivatingSkill;
 
         // Animation control
         private Animator _animator;
@@ -45,6 +44,23 @@ namespace Gisun
             {
                 _camera = Camera.main.transform;
             }
+
+            SetTestSkillData();
+            Init();
+        }
+
+        private void Init()
+        {
+            _skillActivating = false;
+            _rolling = false;
+            _currentActivatingSkill = null;
+        }
+
+        // test code
+        void SetTestSkillData()
+        {
+            _skills.Add(1, new Skill { skillID = 1, name = "Basic Melee Attack", combo = true });
+            _skills.Add(2, new Skill { skillID = 2, name = "Heavy Melee Attack", combo = true });
         }
 
         void Update()
@@ -94,33 +110,32 @@ namespace Gisun
         void HandleSkillInput()
         {
             // Input Skill
-            if (PossibleAction())
+            if (PossibleSkillAction())
             {
                 // skill 1
                 if (CrossPlatformInputManager.GetButtonDown("Fire1"))
                 {
-                    if (_movement.GroundStatus)
+                    Skill skill;
+                    if (!_skills.TryGetValue(1, out skill))
+                        return;
+                    if(!_skillActivating || (_skillActivating && _currentActivatingSkill == skill && skill.combo))
                     {
-                        StartCoroutine(ProcessSkillAction(1.2f, SkillNum.Skill_1, null));
-                    }
-                    else
-                    {
-
+                        _animator.SetTrigger("SkillActivate");
+                        _animator.SetInteger("Skill_ID", skill.skillID);
+                        _currentActivatingSkill = skill;
                     }
                 }
                 // skill 2
                 if (CrossPlatformInputManager.GetButtonDown("Fire2"))
                 {
-                    if (!_skillActivating)
+                    Skill skill;
+                    if (!_skills.TryGetValue(2, out skill))
+                        return;
+                    if (!_skillActivating || (_skillActivating && _currentActivatingSkill == skill && skill.combo))
                     {
-                        if (_movement.GroundStatus)
-                        {
-                            
-                        }
-                        else
-                        {
-                            
-                        }
+                        _animator.SetTrigger("SkillActivate");
+                        _animator.SetInteger("Skill_ID", skill.skillID);
+                        _currentActivatingSkill = skill;
                     }
                 }
                 //// skill 3
@@ -146,9 +161,21 @@ namespace Gisun
             }
         }
 
-        private void OnEndAttack()
+        public void OnSkillEnter()
+        {
+
+        }
+
+        public void InSkillActivating()
+        {
+            _skillActivating = true;
+            _animator.applyRootMotion = true;
+        }
+
+        public void OnSkillExit()
         {
             _skillActivating = false;
+            _animator.applyRootMotion = false;
         }
 
         // 구르기 처리
@@ -176,31 +203,6 @@ namespace Gisun
             _rolling = false;
         }
 
-        IEnumerator ProcessSkillAction(float duration, SkillNum skill, Action<float> action)
-        {
-            _animator.SetTrigger("SkillActivate");
-            _animator.SetInteger("SkillNum", (int)skill);
-
-            _movement.StopTurn();
-            _movement.StopMove();
-
-            _skillActivating = true;
-            yield return new WaitForFixedUpdate();
-
-            float timer = 0f;
-            while (timer < duration)
-            {
-                timer += Time.fixedDeltaTime;
-                if (action != null)
-                {
-                    action(Time.deltaTime);
-                }
-                yield return new WaitForFixedUpdate();
-            }
-
-            _skillActivating = false;
-        }
-
         // Animator
         private void UpdateAnimator()
         {
@@ -221,6 +223,11 @@ namespace Gisun
         private bool PossibleAction()
         {
             return _movement.GroundStatus && !_rolling && !_skillActivating;
+        }
+
+        private bool PossibleSkillAction()
+        {
+            return _movement.GroundStatus && !_rolling;
         }
     }
 }

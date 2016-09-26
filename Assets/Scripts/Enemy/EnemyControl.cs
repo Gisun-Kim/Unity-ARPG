@@ -9,6 +9,9 @@ namespace Gisun
     {
         public string name = "enemy";
 
+        [SerializeField]
+        private AreaTrigger _searchAreaTrigger;
+
         private Transform _transform;
         private CharacterMovement _movement;
         private NavMeshAgent _agent;
@@ -37,19 +40,33 @@ namespace Gisun
             base.Start();
             Debug.Log(name + " Start");
 
-            _target = GameObject.FindGameObjectWithTag("Player").transform;
+            if (_searchAreaTrigger != null)
+                _searchAreaTrigger.OnAreaEnter += OnSearchAreaEnter;
         }
 
-        private void Update()
+        private void FixedUpdate()
         {
             // 목적지 설정
             if (_target != null)
+            {
                 _agent.SetDestination(_target.position);
 
-            if (_agent.remainingDistance > _agent.stoppingDistance)
-                _movement.Move(_agent.desiredVelocity);
-            else
-                _movement.Move(Vector3.zero);
+                if (_agent.remainingDistance > _agent.stoppingDistance)
+                {
+                    _movement.Move(_agent.desiredVelocity);
+                }
+                else
+                {
+                    _movement.Move(Vector3.zero);
+                }
+
+                //if ((_target.position - _transform.position).magnitude > 2f)
+                //{
+                //    _movement.Move((_target.position - _transform.position).normalized);
+                //}
+            }
+
+            UpdateAnimator();
         }
 
         protected virtual void Die()
@@ -75,7 +92,8 @@ namespace Gisun
             _target = target;
         }
 
-        public void OnSearchAreaEnter(Collider other)
+        // Search Player Callback
+        private void OnSearchAreaEnter(Collider other)
         {
             if (other.CompareTag("Player"))
             {

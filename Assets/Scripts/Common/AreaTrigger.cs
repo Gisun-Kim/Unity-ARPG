@@ -6,20 +6,8 @@ public class AreaTrigger : MonoBehaviour
 {
     public event Action<Collider> OnAreaEnter;
 
-    // Use this for initialization
-    void Start()
-    {
-
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
     void OnTriggerEnter(Collider other)
     {
-
+        if (OnAreaEnter != null) OnAreaEnter(other);
     }
 }
