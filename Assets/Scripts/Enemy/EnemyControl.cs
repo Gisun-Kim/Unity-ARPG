@@ -23,22 +23,10 @@ namespace Gisun
             _transform = GetComponent<Transform>();
 
             _agent = GetComponentInChildren<NavMeshAgent>();
-            if (_agent == null)
-            {
-                Debug.LogError("No NavMeshAgent assigned. Character will now be disabled.");
-                this.enabled = false;
-                return;
-            }
             _agent.updateRotation = false;
             _agent.updatePosition = true;
 
             _movement = GetComponent<CharacterMovement>();
-            if (_movement == null)
-            {
-                Debug.LogError("No CharacterMovement assigned. Character will now be disabled.");
-                this.enabled = false;
-                return;
-            }
 
             _animator = GetComponentInChildren<Animator>();
             _animator.applyRootMotion = false;
@@ -48,10 +36,13 @@ namespace Gisun
         {
             base.Start();
             Debug.Log(name + " Start");
+
+            _target = GameObject.FindGameObjectWithTag("Player").transform;
         }
 
         private void Update()
         {
+            // 목적지 설정
             if (_target != null)
                 _agent.SetDestination(_target.position);
 
@@ -84,11 +75,28 @@ namespace Gisun
             _target = target;
         }
 
-        public void OnTriggerEnter(Collider other)
+        public void OnSearchAreaEnter(Collider other)
         {
             if (other.CompareTag("Player"))
             {
                 this.SetTarget(other.gameObject.transform);
+            }
+        }
+
+        // Animator
+        private void UpdateAnimator()
+        {
+            if (_animator == null)
+                return;
+
+            if (_movement.ControlAllowed)
+            {
+                _animator.SetFloat("Speed", new Vector3(_movement.Velocity.x, 0f, _movement.Velocity.z).magnitude);
+            }
+            _animator.SetBool("Grounded", _movement.GroundStatus);
+            if (!_movement.GroundStatus)
+            {
+                _animator.SetFloat("Jump", _movement.Velocity.y);
             }
         }
     }

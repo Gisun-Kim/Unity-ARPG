@@ -26,7 +26,7 @@ namespace Gisun
 
         private bool _skillActivating;  // 스킬 시전중
 
-        private bool _Rolling;          // 구르는중
+        private bool _rolling;          // 구르는중
 
         // Animation control
         private Animator _animator;
@@ -35,13 +35,6 @@ namespace Gisun
         {
             _transform = GetComponent<Transform>();
             _movement = GetComponent<CharacterMovement>();
-            if (_movement == null)
-            {
-                Debug.LogError("No CharacterMovement assigned. Character will now be disabled.");
-                this.enabled = false;
-                return;
-            }
-
             _animator = GetComponentInChildren<Animator>();
             _animator.applyRootMotion = false;
         }
@@ -63,7 +56,7 @@ namespace Gisun
 
         private void HandleMovementInput()
         {
-            if (!_Rolling && !_skillActivating && _movement.GroundStatus)
+            if (PossibleAction())
             {
                 Vector3 movement = Vector3.zero;
                 // input jump
@@ -101,7 +94,7 @@ namespace Gisun
         void HandleSkillInput()
         {
             // Input Skill
-            if (!_Rolling)
+            if (PossibleAction())
             {
                 // skill 1
                 if (CrossPlatformInputManager.GetButtonDown("Fire1"))
@@ -167,7 +160,7 @@ namespace Gisun
             _movement.StopMove();
             _movement.SetRotate(direction);
 
-            _Rolling = true;
+            _rolling = true;
             yield return new WaitForFixedUpdate();
             
             float timer = 0f;
@@ -180,7 +173,7 @@ namespace Gisun
             }
 
             _movement._moveMultiplier = 1f;
-            _Rolling = false;
+            _rolling = false;
         }
 
         IEnumerator ProcessSkillAction(float duration, SkillNum skill, Action<float> action)
@@ -223,6 +216,11 @@ namespace Gisun
             {
                 _animator.SetFloat("Jump", _movement.Velocity.y);
             }
+        }
+
+        private bool PossibleAction()
+        {
+            return _movement.GroundStatus && !_rolling && !_skillActivating;
         }
     }
 }
