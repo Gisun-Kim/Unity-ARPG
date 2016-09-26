@@ -1,15 +1,17 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+[RequireComponent(typeof(CapsuleCollider))]
+[RequireComponent(typeof(Rigidbody))]
 public class CharacterMotor : MonoBehaviour
 {
     [Header("Layers")]
     [SerializeField]
     protected LayerMask groundCheckLayer = 1 << 0;
     [SerializeField]
-    protected float     groundCheckMinDistance = 0.1f;
+    protected float groundCheckMinDistance = 0.1f;
     [SerializeField]
-    protected float     groundCheckMaxDistance = 0.5f;
+    protected float groundCheckMaxDistance = 0.5f;
 
     [SerializeField]
     protected bool lockMovement;
@@ -65,6 +67,7 @@ public class CharacterMotor : MonoBehaviour
 
     private void FixedUpdate()
     {
+        UpdateMotor();
     }
 
     protected void UpdateMotor()
@@ -76,12 +79,12 @@ public class CharacterMotor : MonoBehaviour
 
     public bool LockMovement = false;
 
-
     void FreeMovement()
     {
-        if (this.input != Vector2.zero && )
+        Vector3 targetDirection = Vector3.zero;
+        if (this.input != Vector2.zero)
         {
-
+            
         }
     }
 
@@ -114,6 +117,5 @@ public class CharacterMotor : MonoBehaviour
 
         return distance;
     }
-
     
 }
