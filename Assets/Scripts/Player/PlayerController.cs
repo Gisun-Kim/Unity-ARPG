@@ -118,8 +118,8 @@ public class PlayerController : MonoBehaviour
         Debug.Log("Ground Angle : " + GroundAngle());
         Vector3 movement = Vector3.ProjectOnPlane(inputMovement, groundHitInfo.normal);
         Debug.Log("ProjectOnPlane : " + movement);
-        // 표면 경사를 이동에 적용 (오르막 일때만)
-        if (IsGrounded && movement.y > 0)
+        // 표면 경사를 이동에 적용 (오르막 일때만 80도 이하로 계단에서 걸림)
+        if (IsGrounded && movement.y > 0 && GroundAngle() < 80f)
         {
             movement = movement * speed * moveMultiplier;
             moveDirection = new Vector3(movement.x, moveDirection.y, movement.z);
@@ -177,9 +177,14 @@ public class PlayerController : MonoBehaviour
         if (this.IsGrounded)
         {
             // 중력 초기화
-            moveDirection.y = 0;
-            Jumping = false;
+            if(!Jumping)
+                moveDirection.y = 0;
 
+            if (Jumping && Velocity.y <= 0f)
+            {
+                Jumping = false;
+            }
+            
             // 점프
             if (inputJump)
             {
@@ -216,19 +221,20 @@ public class PlayerController : MonoBehaviour
         float height = _controller.height;
         float radius = _controller.radius;
         float distance = float.MaxValue;
+        Vector3 origin = (_transform.position + _controller.center) + Vector3.down * (height / 2 - radius); 
         // Raycast 로 거리 체크
-        Ray ray = new Ray(_transform.position + Vector3.up * (height / 2f), Vector3.down);
+        Ray ray = new Ray(origin, Vector3.down);
         if (Physics.Raycast(ray, out groundHitInfo, 10f, groundCheckLayer))
         {
-            distance = _transform.position.y - groundHitInfo.point.y;
-            Debug.DrawLine(_transform.position, groundHitInfo.point);
+            distance = (origin.y - radius) - groundHitInfo.point.y;
+            Debug.DrawLine(origin, groundHitInfo.point);
         }
         // SphereCast 로 거리 체크
-        ray = new Ray(_transform.position + Vector3.up * _controller.radius, Vector3.down);
+        ray = new Ray(origin, Vector3.down);
         if (Physics.SphereCast(ray, radius, out groundHitInfo, 10f, groundCheckLayer))
         {
-            float d = (groundHitInfo.point - (_transform.position + Vector3.up * _controller.radius)).magnitude - _controller.radius;
-            Debug.DrawLine(_transform.position + Vector3.up * _controller.radius, groundHitInfo.point);
+            float d = (groundHitInfo.point - origin).magnitude - _controller.radius;
+            Debug.DrawLine(origin, groundHitInfo.point);
             // SphereCast 거리가 더 짧은지 체크
             if (distance > d)
             {
@@ -237,6 +243,16 @@ public class PlayerController : MonoBehaviour
         }
 
         this.groundDistance = distance;
+    }
+
+    public void OnDrawGizmos()
+    {
+        if (IsGrounded)
+            Gizmos.color = Color.green;
+        else
+            Gizmos.color = Color.red;
+
+        Gizmos.DrawLine(groundHitInfo.point, groundHitInfo.point + groundHitInfo.normal);
     }
 
     float GroundAngle()
