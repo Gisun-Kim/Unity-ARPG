@@ -458,7 +458,7 @@ ModelImporter:
       name: sword_and_shield_jump_falling_idle
       takeName: mixamo.com
       firstFrame: 12
-      lastFrame: 14.8
+      lastFrame: 16
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
