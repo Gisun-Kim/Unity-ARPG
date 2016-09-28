@@ -2,7 +2,7 @@
 using System.Collections;
 
 [RequireComponent(typeof(CharacterController))]
-public class PlayerController : MonoBehaviour
+public class UserCharacterControl : MonoBehaviour
 {
     public float runSpeed = 3.0f;
     public float sprintSpeed = 5.0f;
@@ -73,7 +73,7 @@ public class PlayerController : MonoBehaviour
         UpdateAir();
         UpdateRotate();
         UpdateMovement();
-        //ResetInput();
+        ResetInput();
     }
 
     void Init()
@@ -91,11 +91,7 @@ public class PlayerController : MonoBehaviour
         groundDistance = float.MaxValue;
     }
 
-    public void Jump()
-    {
-        if (!inputJump)
-            inputJump = true;
-    }
+    
 
     void UpdateMovement()
     {
@@ -281,10 +277,22 @@ public class PlayerController : MonoBehaviour
         this.inputMovement = movement;
     }
 
+    // 점프
+    public void Jump()
+    {
+        if (!inputJump)
+            inputJump = true;
+    }
+
     // 다음 프레임 이동을 멈춤
     public void Stop()
     {
         inputMovement = Vector3.zero;
         targetDirection = Vector3.zero;
+    }
+
+    public void Roll()
+    {
+
     }
 }

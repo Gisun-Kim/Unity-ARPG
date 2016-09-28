@@ -5,26 +5,42 @@ using System.Collections.Generic;
 using UnityStandardAssets.CrossPlatformInput;
 
 
-class Skill
-{
-    public int skillID;
-    public string name;
-    public bool combo;
-}
+//class SkillInfo
+//{
+//    public enum CastType
+//    {
+//        Instant = 0,    // 즉시 시전
+//        Time = 1     // 시전 시간
+//    }
+//    public enum SkillType
+//    {
+//        Self,
+//        MeleeArea,
+//        Projectile,
+//        targetPosition
+//    }
 
-[RequireComponent(typeof(PlayerController))]
+//    public int ID;
+//    public string name;
+//    public bool combo;
+//    public SkillInfo comboNext;
+//    public CastType castType = CastType.Instant;
+//    public float castTime = 0f;
+//    public SkillType skillType = SkillType.MeleeArea;
+//    public float AreaRadius = 1f;
+//    public float AreaAngle = 360f;
+//    public Vector3 direction = Vector3.forward;
+//}
+
+[RequireComponent(typeof(UserCharacterControl))]
 public class PlayerControl : PlayerCharacter
 {
     private Transform _transform;
-    private PlayerController _controller;
+    private UserCharacterControl _characterControl;
     private Transform _camera;
 
-    private bool _skillActivating;  // 스킬 시전중
-    private bool _rolling;          // 구르는중
-
-    private Dictionary<int, Skill> _skills = new Dictionary<int, Skill>();
-    private Skill _prevActivatingSkill;
-    private Skill _currentActivatingSkill;
+    private bool _attacking;  // 공격중
+    //private bool _rolling;          // 구르는중
 
     // Animation control
     private Animator _animator;
@@ -32,7 +48,7 @@ public class PlayerControl : PlayerCharacter
     void Awake()
     {
         _transform = GetComponent<Transform>();
-        _controller = GetComponent<PlayerController>();
+        _characterControl = GetComponent<UserCharacterControl>();
         _animator = GetComponentInChildren<Animator>();
         _animator.applyRootMotion = false;
     }
@@ -46,22 +62,13 @@ public class PlayerControl : PlayerCharacter
             _camera = Camera.main.transform;
         }
 
-        SetTestSkillData();
         Init();
     }
 
     private void Init()
     {
-        _skillActivating = false;
-        _rolling = false;
-        _currentActivatingSkill = null;
-    }
-
-    // test code
-    void SetTestSkillData()
-    {
-        _skills.Add(1, new Skill { skillID = 1, name = "Basic Melee Attack", combo = true });
-        _skills.Add(2, new Skill { skillID = 2, name = "Heavy Melee Attack", combo = true });
+        _attacking = false;
+        //_rolling = false;
     }
 
     void Update()
@@ -73,13 +80,13 @@ public class PlayerControl : PlayerCharacter
 
     private void HandleMovementInput()
     {
-        if (PossibleAction())
+        if (CanAction())
         {
             Vector3 movement = Vector3.zero;
             // input jump
             if (CrossPlatformInputManager.GetButtonDown("Jump"))
             {
-                _controller.Jump();
+                _characterControl.Jump();
             }
 
             // Input movement
@@ -104,7 +111,7 @@ public class PlayerControl : PlayerCharacter
                 sprint = true;
             }
 
-            _controller.Move(movement, sprint);
+            _characterControl.Move(movement, sprint);
 
 
             // Input Roll
@@ -177,13 +184,13 @@ public class PlayerControl : PlayerCharacter
 
     public void InSkillActivating()
     {
-        _skillActivating = true;
+        _attacking = true;
         _animator.applyRootMotion = true;
     }
 
     public void OnSkillExit()
     {
-        _skillActivating = false;
+        _attacking = false;
         _animator.applyRootMotion = false;
     }
 
@@ -218,14 +225,14 @@ public class PlayerControl : PlayerCharacter
         if (_animator == null)
             return;
 
-        _animator.SetFloat("Speed", new Vector3(_controller.Velocity.x, 0f, _controller.Velocity.z).magnitude);
-        _animator.SetBool("IsGrounded", _controller.IsGrounded);
-        _animator.SetFloat("VerticalVelocity", _controller.Velocity.y);
-        _animator.SetBool("Jumping", _controller.Jumping);
+        _animator.SetFloat("Speed", new Vector3(_characterControl.Velocity.x, 0f, _characterControl.Velocity.z).magnitude);
+        _animator.SetBool("IsGrounded", _characterControl.IsGrounded);
+        _animator.SetFloat("VerticalVelocity", _characterControl.Velocity.y);
+        _animator.SetBool("Jumping", _characterControl.Jumping);
     }
 
-    private bool PossibleAction()
+    private bool CanAction()
     {
-        return !_rolling && !_skillActivating;
+        return !_attacking;
     }
 }
