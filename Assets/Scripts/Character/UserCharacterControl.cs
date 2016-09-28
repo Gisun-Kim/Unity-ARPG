@@ -73,7 +73,7 @@ public class UserCharacterControl : MonoBehaviour
         UpdateAir();
         UpdateRotate();
         UpdateMovement();
-        ResetInput();
+        //ResetInput();
     }
 
     void Init()
@@ -111,9 +111,9 @@ public class UserCharacterControl : MonoBehaviour
 
         float speed = inputSprint ? sprintSpeed : runSpeed;
 
-        Debug.Log("Ground Angle : " + GroundAngle());
+        //Debug.Log("Ground Angle : " + GroundAngle());
         Vector3 movement = Vector3.ProjectOnPlane(inputMovement, groundHitInfo.normal);
-        Debug.Log("ProjectOnPlane : " + movement);
+        //Debug.Log("ProjectOnPlane : " + movement);
         // 표면 경사를 이동에 적용 (오르막 일때만 80도 이하로 계단에서 걸림)
         if (IsGrounded && movement.y > 0 && GroundAngle() < 80f)
         {
